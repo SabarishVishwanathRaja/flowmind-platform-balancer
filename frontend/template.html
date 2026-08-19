@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>FLOWMIND - Platform Balancer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0e14;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;padding:18px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+h1{font-size:20px;letter-spacing:2px;font-weight:600}
+h1 span{color:#4ea8ff}
+.sim{background:#3d2b00;color:#ffc65c;border:1px solid #7a5700;padding:5px 12px;
+     border-radius:4px;font-size:11px;letter-spacing:1px;font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 340px;gap:14px}
+.card{background:#11161f;border:1px solid #1e2733;border-radius:8px;padding:14px;margin-bottom:14px}
+.card h2{font-size:11px;letter-spacing:1.5px;color:#7d8794;margin-bottom:10px;font-weight:600}
+#platform{width:100%;height:300px;display:block;background:#080b10;border-radius:6px}
+.zones{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.z{background:#0d1219;border:1px solid #1e2733;border-radius:6px;padding:10px}
+.z .n{font-size:15px;font-weight:700;margin-bottom:6px}
+.z .d{font-size:24px;font-weight:700}
+.z .u{font-size:10px;color:#6b7480}
+.bar{height:5px;background:#1a2230;border-radius:3px;margin-top:7px;overflow:hidden}
+.bar i{display:block;height:100%;transition:width .2s}
+.normal{color:#3fb950}.watch{color:#d29922}.warning{color:#f85149}.critical{color:#ff6b6b}
+.bnormal{background:#3fb950}.bwatch{background:#d29922}.bwarning{background:#f85149}.bcritical{background:#ff6b6b}
+.rec{background:#0d1a2b;border-left:3px solid #4ea8ff;padding:12px;border-radius:4px;font-size:13px;line-height:1.55}
+.recid{color:#4ea8ff;font-size:10px;letter-spacing:1px;margin-bottom:5px;font-weight:600}
+.fb{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.fbb{background:#0d1219;padding:9px;border-radius:5px;text-align:center}
+.fbb b{display:block;font-size:20px;margin-top:3px}
+.exp{color:#7d8794}.act{color:#4ea8ff}
+.chat{font-size:12px;color:#8b949e;margin-top:10px;line-height:1.7}
+.chat b{color:#3fb950}
+.m{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a2230;font-size:12px}
+.m:last-child{border:0}
+.m b{font-size:15px}
+.big{background:#0d1f14;border:1px solid #1e4d2b;border-radius:6px;padding:12px;text-align:center;margin-top:10px}
+.big .v{font-size:30px;font-weight:700;color:#3fb950}
+.big .l{font-size:10px;color:#6b7480;letter-spacing:1px;margin-top:3px}
+.ctl{display:flex;gap:8px;align-items:center;margin-top:12px}
+button{background:#1c2531;color:#e6edf3;border:1px solid #2d3a4d;padding:8px 15px;
+       border-radius:5px;cursor:pointer;font-size:12px;font-weight:600}
+button:hover{background:#26313f}
+button.on{background:#1f6feb;border-color:#1f6feb}
+#seek{flex:1}
+#log{height:110px;overflow-y:auto;font-size:11px;line-height:1.8;color:#8b949e;font-family:Consolas,monospace}
+#log div{border-bottom:1px solid #141b24;padding:2px 0}
+.note{font-size:10px;color:#5a636e;margin-top:10px;line-height:1.6}
+</style></head><body>
+<div class="top">
+  <h1>FLOW<span>MIND</span> &nbsp;&middot;&nbsp; PLATFORM BALANCER</h1>
+  <div class="sim">SIMULATED DATA - NOT A REAL DEPLOYMENT</div>
+</div>
+<div class="grid">
+ <div>
+  <div class="card">
+    <h2>PLATFORM - DIGITAL TWIN</h2>
+    <canvas id="platform"></canvas>
+    <div class="zones" id="zones"></div>
+    <div class="ctl">
+      <button id="play">Pause</button>
+      <input type="range" id="seek" min="0" value="0">
+      <span id="clock" style="font-size:12px;color:#8b949e;min-width:120px"></span>
+    </div>
+    <div class="ctl">
+      <button id="mOn" class="on">FLOWMIND ON</button>
+      <button id="mNo">LOOP DISABLED</button>
+      <button id="mOff">BASELINE (no intervention)</button>
+    </div>
+  </div>
+  <div class="card"><h2>EVENT LOG</h2><div id="log"></div></div>
+  <div class="card">
+    <h2>ROBUSTNESS SWEEP - 13 FULL RUNS AT DIFFERENT TRUE COMPLIANCE RATES</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div><canvas id="c1" height="440"></canvas>
+        <div class="note" style="text-align:center">Boarding time stays far below
+        baseline across the whole range - the result does not depend on a
+        favourable compliance assumption.</div></div>
+      <div><canvas id="c2" height="440"></canvas>
+        <div class="note" style="text-align:center">The engine is never told the
+        true compliance rate. It estimates it online from observed movement,
+        using 4-6 observations per run.</div></div>
+    </div>
+  </div>
+ </div>
+ <div>
+  <div class="card"><h2>CURRENT RECOMMENDATION</h2><div id="rec"></div></div>
+  <div class="card"><h2>RESPONSE MONITORING</h2><div id="fb"></div>
+    <div class="chat" id="chat"></div></div>
+  <div class="card"><h2>METRICS</h2><div id="met"></div>
+    <div class="big"><div class="v" id="hl">--</div>
+    <div class="l">BOARDING TIME REDUCTION VS BASELINE</div></div>
+    <div class="note">Boarding time from a simplified door-flow model: per-door
+    passenger flow degrades above 1.0 pax/m&sup2;. Constants are illustrative,
+    not calibrated against field data.</div>
+  </div>
+ </div>
+</div>
+<script>
+const DATA = __DATA__;
+const SW = __SWEEP__;
+const ZN = ["A","B","C","D"];
+let mode = "on", i = 0, playing = true;
+const cv = document.getElementById('platform'), cx = cv.getContext('2d');
+function runData(){ return DATA[mode]; }
+function resize(){ cv.width = cv.clientWidth*2; cv.height = 300*2; cx.scale(1,1); }
+window.addEventListener('resize', resize); resize();
+
+function draw(f){
+  const W = cv.width, H = cv.height, zw = W/4;
+  cx.clearRect(0,0,W,H);
+  for(let z=0;z<4;z++){
+    const st = f.zs[z];
+    cx.fillStyle = st=="critical"?"#2a1015":st=="warning"?"#241318":st=="watch"?"#221c0e":"#0d1219";
+    cx.fillRect(z*zw+4,4,zw-8,H-8);
+    cx.strokeStyle="#1e2733"; cx.lineWidth=2; cx.strokeRect(z*zw+4,4,zw-8,H-8);
+    cx.fillStyle="#3a4453"; cx.font="bold 40px Segoe UI"; cx.textAlign="center";
+    cx.fillText(ZN[z], z*zw+zw/2, 60);
+  }
+  for(const p of f.p){
+    const zx = p[2]*zw + (p[0]/100)*(zw-16) + 8;
+    const zy = (p[1]/100)*(H-40) + 20;
+    const st = f.zs[p[2]];
+    cx.fillStyle = st=="critical"||st=="warning" ? "#f85149" : st=="watch" ? "#d29922" : "#4ea8ff";
+    cx.globalAlpha=.85;
+    cx.beginPath(); cx.arc(zx,zy,3.2,0,6.3); cx.fill();
+  }
+  cx.globalAlpha=1;
+}
+
+function render(){
+  const R = runData(), f = R.frames[i];
+  draw(f);
+  document.getElementById('seek').max = R.frames.length-1;
+  document.getElementById('seek').value = i;
+  document.getElementById('clock').textContent =
+    "t="+f.t.toFixed(1)+"s  ·  train in "+f.eta.toFixed(1)+"s";
+
+  document.getElementById('zones').innerHTML = ZN.map((z,k)=>{
+    const d=(f.zd[k]/100), p=(f.zp[k]/100), s=f.zs[k];
+    return `<div class="z"><div class="n ${s}">ZONE ${z}</div>
+      <div class="d ${s}">${d.toFixed(2)}</div><div class="u">pax/m² · ${f.zc[k]} people</div>
+      <div class="bar"><i class="b${s}" style="width:${Math.min(100,d/3.5*100)}%"></i></div>
+      <div class="u" style="margin-top:6px">predicted @ arrival: <b>${p.toFixed(2)}</b></div></div>`;
+  }).join('');
+
+  const r = f.rec;
+  document.getElementById('rec').innerHTML = r ?
+    `<div class="rec"><div class="recid">${r.id} · score ${r.score}</div>${r.text}
+     <div style="margin-top:8px;font-size:11px;color:#6b7480">
+     physics needs ${r.raw} · asked for ${r.target} (inflated by compliance estimate ${r.chat})</div></div>`
+    : `<div style="color:#6b7480;font-size:13px">No intervention required — zones within target.</div>`;
+
+  const b = f.fb;
+  document.getElementById('fb').innerHTML = b ?
+    `<div class="fb"><div class="fbb"><span class="exp">EXPECTED</span><b class="exp">${b.expected}</b></div>
+     <div class="fbb"><span class="act">ACTUAL</span><b class="act">${b.actual}</b></div></div>
+     <div class="chat">Intervention effectiveness: <b>${Math.round(b.eff*100)}%</b></div>`
+    : `<div style="color:#6b7480;font-size:13px">Awaiting passenger response…</div>`;
+
+  document.getElementById('chat').innerHTML = "Learned compliance estimate — " +
+    ZN.map((z,k)=>`${z} <b>${(f.ch[k]/100).toFixed(2)}</b>`).join(" · ");
+
+  const base = DATA.off.boarding, cur = R.boarding;
+  document.getElementById('met').innerHTML =
+    `<div class="m"><span>Peak density</span><b>${R.peak} pax/m²</b></div>
+     <div class="m"><span>Boarding time</span><b>${cur}s</b></div>
+     <div class="m"><span>Baseline boarding time</span><b>${base}s</b></div>
+     <div class="m"><span>10s-ahead prediction error (MAE)</span><b>${R.mae}</b></div>`;
+  const red = base>0 ? Math.round((base-cur)/base*100) : 0;
+  document.getElementById('hl').textContent = (mode=="off"?"—":red+"%");
+
+  const past = R.events.filter(e=>e.t <= f.t*10);
+  document.getElementById('log').innerHTML =
+    past.slice(-30).reverse().map(e=>`<div>[${(e.t/10).toFixed(1)}s] ${e.text}</div>`).join('')
+    || '<div>Monitoring…</div>';
+}
+
+document.getElementById('play').onclick = e => {
+  playing = !playing; e.target.textContent = playing ? "Pause" : "Play"; };
+document.getElementById('seek').oninput = e => { i = +e.target.value; render(); };
+function setMode(m, btn){
+  mode = m; i = 0;
+  for(const b of ["mOn","mNo","mOff"]) document.getElementById(b).classList.remove("on");
+  btn.classList.add("on"); render();
+}
+document.getElementById('mOn').onclick  = e => setMode("on", e.target);
+document.getElementById('mNo').onclick  = e => setMode("noloop", e.target);
+document.getElementById('mOff').onclick = e => setMode("off", e.target);
+
+
+function chart(id, series, ymax, ylabel){
+  const c = document.getElementById(id), g = c.getContext('2d');
+  c.width = c.clientWidth*2; const W=c.width, H=c.height;
+  const L=70, R=14, T=26, B=44, pw=W-L-R, ph=H-T-B;
+  g.clearRect(0,0,W,H);
+  g.strokeStyle="#1e2733"; g.lineWidth=2; g.font="18px Segoe UI"; g.fillStyle="#6b7480";
+  for(let k=0;k<=4;k++){
+    const y=T+ph-ph*k/4;
+    g.beginPath(); g.moveTo(L,y); g.lineTo(W-R,y); g.stroke();
+    g.textAlign="right"; g.fillText((ymax*k/4).toFixed(1), L-10, y+6);
+  }
+  g.textAlign="center";
+  for(let k=0;k<SW.c.length;k+=3){
+    const x=L+pw*k/(SW.c.length-1);
+    g.fillText(SW.c[k].toFixed(2), x, H-16);
+  }
+  g.fillText("true compliance rate", L+pw/2, H-2);
+  g.save(); g.translate(16,T+ph/2); g.rotate(-Math.PI/2);
+  g.fillText(ylabel,0,0); g.restore();
+  for(const s of series){
+    g.strokeStyle=s.col; g.lineWidth=s.dash?3:4;
+    g.setLineDash(s.dash?[8,8]:[]);
+    g.beginPath();
+    s.v.forEach((v,k)=>{
+      const x=L+pw*k/(s.v.length-1), y=T+ph-ph*Math.min(1,v/ymax);
+      k?g.lineTo(x,y):g.moveTo(x,y);
+    });
+    g.stroke(); g.setLineDash([]);
+    g.fillStyle=s.col;
+    s.v.forEach((v,k)=>{
+      const x=L+pw*k/(s.v.length-1), y=T+ph-ph*Math.min(1,v/ymax);
+      g.beginPath(); g.arc(x,y,4,0,6.3); g.fill();
+    });
+  }
+  let lx=L+8;
+  g.textAlign="left"; g.font="bold 18px Segoe UI";
+  for(const s of series){
+    g.fillStyle=s.col; g.fillText(s.name, lx, 16); lx += g.measureText(s.name).width+26;
+  }
+}
+
+function drawCharts(){
+  chart("c1", [
+    {name:"baseline (no intervention)", v:SW.off, col:"#f85149", dash:true},
+    {name:"FLOWMIND", v:SW.on, col:"#3fb950"},
+  ], 160, "boarding time (s)");
+  chart("c2", [
+    {name:"true compliance", v:SW.c, col:"#7d8794", dash:true},
+    {name:"estimated by FLOWMIND", v:SW.chat, col:"#4ea8ff"},
+  ], 1.0, "compliance rate");
+}
+window.addEventListener('resize', drawCharts);
+drawCharts();
+
+setInterval(()=>{ if(playing){ i++; if(i >= runData().frames.length) i=0; render(); } }, 100);
+render();
+</script></body></html>
